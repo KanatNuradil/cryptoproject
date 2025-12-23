@@ -248,6 +248,15 @@ export SMTP_PASSWORD="your-app-password"
 export HOST="0.0.0.0"
 export PORT="8000"
 ```
+# SMTP Configuration (for password reset for windows)
+$env:SMTP_HOST="smtp.gmail.com"
+$env:SMTP_PORT="587"
+$env:SMTP_USER="your-email@gmail.com"
+$env:SMTP_PASSWORD="your-app-password"           
+
+# Server Configuration (for windows)
+$env:HOST="0.0.0.0"
+$env:PORT="8000"
 
 ### Production Deployment
 ```bash

@@ -274,9 +274,9 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 
 | Name | Role | Responsibilities |
 |------|------|------------------|
-| Didar Nurdaulet | Frontend Developer | SPA, TOTP UI, password reset, validation |
-| Sherkhan Kudaibergen | Data Analyst | DB design, migrations, analytics, messages |
-| Nuradil Kanat | Backend Developer | FastAPI, auth, cryptography, API, sessions |
+| Didar Nurdaulet | Cryptography & Messaging Lead | Implement core crypto library, Design and implement messaging module |
+| Sherkhan Kudaibergen | Authentication & Security Lead | Design and implement authentication module, ensure secure coding practices across project |
+| Nuradil Kanat |  Blockchain & Integration Lead | Design and implement blockchain module, integrate all modules together |
 
 ## 🙏 Acknowledgments
 

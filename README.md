@@ -236,25 +236,28 @@ pytest tests/test_api.py::test_register_new_user
 
 ## 🔧 Configuration
 
-### Environment Variables
+## Environment Variables
+
+### Linux / macOS (bash/zsh)
 ```bash
 # SMTP Configuration (for password reset)
 export SMTP_HOST="smtp.gmail.com"
 export SMTP_PORT="587"
 export SMTP_USER="your-email@gmail.com"
-export SMTP_PASSWORD="your-app-password"
+export SMTP_PASSWORD="your-app-password"  # Use a Gmail App Password, not your main password
 
 # Server Configuration
 export HOST="0.0.0.0"
 export PORT="8000"
-```
-# SMTP Configuration (for password reset for windows)
+
+
+# SMTP Configuration (for password reset)
 $env:SMTP_HOST="smtp.gmail.com"
 $env:SMTP_PORT="587"
 $env:SMTP_USER="your-email@gmail.com"
-$env:SMTP_PASSWORD="your-app-password"           
+$env:SMTP_PASSWORD="your-app-password"  # Use a Gmail App Password, not your main password
 
-# Server Configuration (for windows)
+# Server Configuration
 $env:HOST="0.0.0.0"
 $env:PORT="8000"
 

@@ -11,6 +11,9 @@
       <header>
         <h1>Secure Messaging</h1>
         <p>End-to-end encrypted demo chat</p>
+        <nav>
+          <a href="file_encryption.html">File Encryption</a>
+        </nav>
       </header>
 
       <section id="home-page">
@@ -30,7 +33,7 @@
       <section class="auth hidden" id="signup-page">
         <div class="card">
           <h2>Sign up</h2>
-          <form id="register-form">
+          <form id="register-form" method="POST">
             <label>Username <input type="text" name="username" required /></label>
             <label>Email <input type="email" name="email" required /></label>
             <label>Password <input type="password" name="password" id="register-password" required /></label>
@@ -49,7 +52,7 @@
       <section class="auth hidden" id="login-page">
         <div class="card">
           <h2>Log in</h2>
-          <form id="login-form">
+          <form id="login-form" method="POST">
             <label>Username or email <input type="text" name="username" required /></label>
             <label>Password <input type="password" name="password" required /></label>
             <div id="totp-section" class="hidden">
@@ -89,7 +92,7 @@
             Enter the email you used for registration. A secure reset token will be generated
             and sent to your email address (valid for 1 hour). Please check your inbox.
           </p>
-          <form id="forgot-form">
+          <form id="forgot-form" method="POST">
             <label>Email <input type="email" name="email" required /></label>
             <button type="submit">Send reset token</button>
           </form>
@@ -108,7 +111,7 @@
           </div>
           <div>
             <h3>Send Message</h3>
-            <form id="send-form">
+            <form id="send-form" method="POST">
               <label>Recipient
                 <select id="recipient-select" required></select>
               </label>
@@ -127,7 +130,7 @@
 
         <div class="card">
           <h3>Group message</h3>
-          <form id="group-send-form">
+          <form id="group-send-form" method="POST">
             <label>Recipients (comma-separated usernames)
               <input type="text" id="group-recipients" placeholder="alice,bob,charlie" />
             </label>

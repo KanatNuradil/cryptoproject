@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>File Encryption - Secure Messaging</title>
+    <link rel="stylesheet" href="styles.css" />
+  </head>
+  <body>
+    <div class="app">
+      <header>
+        <h1>File Encryption System</h1>
+        <p>End-to-end encrypted file storage with integrity verification</p>
+        <nav>
+          <a href="index.html">← Back to Messaging</a>
+          <a href="blockchain.html">Blockchain</a>
+        </nav>
+      </header>
+
+      <section id="file-encryption-section">
+        <div class="card">
+          <div class="session-info">
+            <span id="session-user"></span>
+            <button id="logout-btn">Logout</button>
+          </div>
+
+          <div class="encryption-tabs">
+            <button id="encrypt-tab" class="tab active">Encrypt File</button>
+            <button id="decrypt-tab" class="tab">Decrypt File</button>
+          </div>
+
+          <div id="encrypt-panel" class="panel active">
+            <h3>Encrypt a File</h3>
+            <form id="encrypt-form">
+              <label>Select File
+                <input type="file" id="encrypt-file-input" required />
+              </label>
+              <label>Encryption Password
+                <input type="password" id="encrypt-password" placeholder="Enter encryption password" required />
+              </label>
+              <small class="muted">
+                Password must be strong. Use this password to decrypt the file later.
+              </small>
+              <button type="submit">Encrypt File</button>
+            </form>
+            <div id="encrypt-result" class="result hidden">
+              <h4>Encryption Successful!</h4>
+              <p>Encrypted file: <strong id="encrypted-filename"></strong></p>
+              <p>Original size: <span id="original-size"></span> bytes</p>
+              <button id="download-encrypted">Download Encrypted File</button>
+            </div>
+          </div>
+
+          <div id="decrypt-panel" class="panel hidden">
+            <h3>Decrypt a File</h3>
+            <form id="decrypt-form">
+              <label>Select Encrypted File
+                <input type="file" id="decrypt-file-input" accept=".enc" required />
+              </label>
+              <label>Decryption Password
+                <input type="password" id="decrypt-password" placeholder="Enter decryption password" required />
+              </label>
+              <button type="submit">Decrypt File</button>
+            </form>
+            <div id="decrypt-result" class="result hidden">
+              <h4>Decryption Successful!</h4>
+              <p>Decrypted file: <strong id="decrypted-filename"></strong></p>
+              <p>File size: <span id="decrypted-size"></span> bytes</p>
+              <button id="download-decrypted">Download Decrypted File</button>
+            </div>
+          </div>
+        </div>
+
+        <div class="card">
+          <h3>Security Features</h3>
+          <ul class="feature-list">
+            <li><strong>AES-256-GCM:</strong> Military-grade encryption algorithm</li>
+            <li><strong>PBKDF2:</strong> Key derivation with 100,000 iterations</li>
+            <li><strong>Unique Salt:</strong> Random salt per encryption for security</li>
+            <li><strong>SHA-256 Hash:</strong> File integrity verification</li>
+            <li><strong>HMAC-SHA256:</strong> Tamper detection and authenticity</li>
+            <li><strong>Random FEK:</strong> File encryption key encrypted with master key</li>
+          </ul>
+        </div>
+      </section>
+
+      <div id="toast" class="toast hidden"></div>
+    </div>
+    <script src="file_encryption.js" type="module"></script>
+  </body>
+</html>

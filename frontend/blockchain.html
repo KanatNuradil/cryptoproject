@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Blockchain Audit Ledger</title>
+    <link rel="stylesheet" href="styles.css" />
+  </head>
+  <body>
+    <div class="app">
+      <header>
+        <h1>Blockchain Audit Ledger</h1>
+        <p>Proof-of-Work Blockchain with Merkle Trees</p>
+        <nav>
+          <a href="index.html">Secure Messaging</a>
+          <a href="file_encryption.html">File Encryption</a>
+        </nav>
+      </header>
+
+      <section id="blockchain-page">
+        <div class="card">
+          <h2>Create New Block</h2>
+          <form id="create-block-form">
+            <label>Transaction Data
+              <textarea id="transaction-data" rows="4" placeholder="Enter transaction data (one per line)" required></textarea>
+            </label>
+            <label>Difficulty (1-6)
+              <input type="number" id="difficulty" min="1" max="6" value="4" required />
+            </label>
+            <button type="submit">Mine Block</button>
+          </form>
+        </div>
+
+        <div class="card">
+          <h2>Blockchain</h2>
+          <div id="blockchain-display"></div>
+        </div>
+
+        <div class="card">
+          <h2>Verify Transaction</h2>
+          <form id="verify-transaction-form">
+            <label>Transaction Hash
+              <input type="text" id="verify-tx-hash" placeholder="Transaction hash to verify" required />
+            </label>
+            <label>Block Index
+              <input type="number" id="verify-block-index" min="0" placeholder="Block index" required />
+            </label>
+            <button type="submit">Verify</button>
+          </form>
+          <div id="verification-result"></div>
+        </div>
+
+        <div class="card">
+          <h2>Chain Validation</h2>
+          <button id="validate-chain-btn">Validate Entire Chain</button>
+          <div id="chain-validation-result"></div>
+        </div>
+      </section>
+
+      <div id="toast" class="toast hidden"></div>
+    </div>
+    <script src="blockchain.js" type="module"></script>
+  </body>
+</html>

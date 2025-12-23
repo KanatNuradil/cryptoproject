@@ -361,3 +361,107 @@ def b64encode(payload: bytes) -> str:
 def b64decode(payload: str) -> bytes:
     """Decode base64 string to bytes."""
     return base64.b64decode(payload.encode("utf-8"))
+
+
+def derive_master_key(password: str, salt: bytes, iterations: int = 100_000) -> bytes:
+    """Derive a master key from password using PBKDF2."""
+    kdf = PBKDF2HMAC(
+        algorithm=hashes.SHA256(),
+        length=32,
+        salt=salt,
+        iterations=iterations,
+    )
+    return kdf.derive(password.encode("utf-8"))
+
+
+def generate_file_encryption_key() -> bytes:
+    """Generate a random file encryption key (FEK)."""
+    return os.urandom(32)
+
+
+def encrypt_file_key(fek: bytes, master_key: bytes) -> dict:
+    """Encrypt FEK with master key using AES-GCM."""
+    aesgcm = AESGCM(master_key)
+    nonce = os.urandom(12)
+    ciphertext = aesgcm.encrypt(nonce, fek, None)
+    return {
+        "nonce": b64encode(nonce),
+        "ciphertext": b64encode(ciphertext),
+    }
+
+
+def decrypt_file_key(encrypted_fek: dict, master_key: bytes) -> bytes:
+    """Decrypt FEK using master key."""
+    nonce = b64decode(encrypted_fek["nonce"])
+    ciphertext = b64decode(encrypted_fek["ciphertext"])
+    aesgcm = AESGCM(master_key)
+    return aesgcm.decrypt(nonce, ciphertext, None)
+
+
+def compute_file_hash(file_data: bytes) -> str:
+    """Compute SHA-256 hash of file data."""
+    return hashlib.sha256(file_data).hexdigest()
+
+
+def encrypt_file_stream(fek: bytes, file_data: bytes, chunk_size: int = 65536) -> tuple:
+    """
+    Encrypt file data in chunks using AES-256-GCM.
+    Returns (encrypted_data, hmac_key, nonce, tag)
+    """
+    aesgcm = AESGCM(fek)
+    nonce = os.urandom(12)
+
+    # For simplicity, encrypt the whole file at once (for demo)
+    # In production, would encrypt in chunks and concatenate
+    encrypted = aesgcm.encrypt(nonce, file_data, None)
+
+    # HMAC key for integrity (separate from FEK)
+    hmac_key = os.urandom(32)
+    hmac_tag = _hmac_sha256(hmac_key, encrypted)
+
+    return encrypted, hmac_key, nonce, hmac_tag
+
+
+def decrypt_file_stream(fek: bytes, encrypted_data: bytes, hmac_key: bytes, nonce: bytes, hmac_tag: bytes) -> bytes:
+    """
+    Decrypt file data using AES-256-GCM and verify HMAC.
+    """
+    # Verify HMAC first
+    computed_hmac = _hmac_sha256(hmac_key, encrypted_data)
+    if not compare_digest(computed_hmac, hmac_tag):
+        raise ValueError("HMAC verification failed: file may have been tampered with")
+
+    # Decrypt
+    aesgcm = AESGCM(fek)
+    return aesgcm.decrypt(nonce, encrypted_data, None)
+
+
+def create_encrypted_file_metadata(original_filename: str, file_hash: str, salt: bytes, iterations: int,
+                                  encrypted_fek: dict, hmac_key: bytes, nonce: bytes, hmac_tag: bytes) -> dict:
+    """Create metadata for encrypted file."""
+    return {
+        "version": "1.0",
+        "algorithm": "AES-256-GCM",
+        "original_filename": original_filename,
+        "file_hash": file_hash,
+        "salt": b64encode(salt),
+        "iterations": iterations,
+        "encrypted_fek": encrypted_fek,
+        "hmac_key": b64encode(hmac_key),
+        "nonce": b64encode(nonce),
+        "hmac_tag": b64encode(hmac_tag),
+    }
+
+
+def parse_encrypted_file_metadata(metadata: dict) -> tuple:
+    """Parse metadata from encrypted file."""
+    return (
+        metadata["original_filename"],
+        metadata["file_hash"],
+        b64decode(metadata["salt"]),
+        metadata["iterations"],
+        metadata["encrypted_fek"],
+        b64decode(metadata["hmac_key"]),
+        b64decode(metadata["nonce"]),
+        b64decode(metadata["hmac_tag"]),
+    )

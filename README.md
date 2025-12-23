@@ -1,329 +1,285 @@
-# Secure Messaging Application
+# Crypt
 
-A production-ready end-to-end encrypted messaging application with comprehensive security features, including multi-factor authentication, secure password reset, and modern authentication practices.
+A comprehensive cybersecurity platform featuring end-to-end encrypted messaging, file encryption, and a proof-of-work blockchain audit ledger. This project implements multiple cryptographic primitives from scratch and provides a complete security toolkit.
 
-## Security Features
+## 🏗️ Architecture Overview
 
-### Core Cryptography
-- **AES-256-GCM** encryption for message confidentiality with per-message nonces
-- **X25519 ECDH** key exchange with fresh ephemeral keys per message (forward secrecy)
-- **Ed25519** digital signatures for sender authentication and message integrity
-- **Bcrypt** password hashing with configurable cost factor
-- **PBKDF2** key derivation for wrapping private keys at rest
+This application consists of four main modules:
 
-### Authentication & Authorization
-- **Password Complexity Validation**: Minimum 8 characters, requires at least one letter, one number, and one special character
-- **Multi-Factor Authentication (MFA)**: TOTP-based 2FA using authenticator apps (Google Authenticator, Authy, etc.)
-- **Secure Session Management**: HttpOnly and Secure cookies for JWT storage (prevents XSS attacks)
-- **Secure Password Reset**: Cryptographically secure tokens with 1-hour expiration (replaces simple 4-digit codes)
+1. **Secure Messaging System** - End-to-end encrypted messaging with TOTP 2FA
+2. **File Encryption Module** - AES-256-GCM file encryption with PBKDF2 key derivation
+3. **Blockchain Audit Ledger** - Proof-of-work blockchain with Merkle trees and transaction signatures
+4. **Custom Cryptography Library** - Hand-implemented cryptographic primitives
 
-### Additional Security
-- **SQLite Database** for persistent storage with schema migrations
-- **Email Integration** for password reset notifications (configurable SMTP)
-- **Error Handling**: Comprehensive error messages for all security operations
-- **Group Messaging**: End-to-end encrypted group messages
-
-## Project Layout
+## 📦 Project Structure
 
 ```
-secure_messaging/
-  __init__.py
-  __main__.py           # CLI entrypoint
-  app.py                # Auth + messaging services (password validation, TOTP)
-  crypto.py             # AES, ECDH, signatures, password protection
-  db.py                 # SQLite persistence with TOTP and reset token support
-  server.py             # FastAPI application with cookie-based auth
-  validation.py         # Password complexity validation
-  totp.py               # TOTP generation and QR code creation
-  emailer.py            # SMTP email sending for password reset
-frontend/
-  index.html            # Main SPA with TOTP setup UI
-  app.js                # Frontend logic (cookie-based auth, password validation)
-  reset_password.html   # Password reset page with token validation
-  styles.css            # UI styling
-data/
-  app.db                # SQLite database (users, messages, TOTP secrets)
-tests/
-  test_core.py
-  test_api.py
-requirements.txt
-README.md
-LICENSE
+crypt/
+├── secure_messaging/          # Backend API and CLI
+│   ├── __init__.py
+│   ├── __main__.py           # CLI entrypoint
+│   ├── app.py                # Authentication & messaging services
+│   ├── crypto.py             # Cryptographic operations
+│   ├── db.py                 # SQLite database layer
+│   ├── server.py             # FastAPI web server
+│   ├── validation.py         # Password validation
+│   ├── totp.py               # TOTP 2FA implementation
+│   └── emailer.py            # SMTP email integration
+├── frontend/                 # Web interface
+│   ├── index.html            # Secure messaging UI
+│   ├── app.js                # Frontend logic
+│   ├── blockchain.html       # Blockchain interface
+│   ├── blockchain.js         # Blockchain implementation
+│   ├── file_encryption.html  # File encryption UI
+│   ├── file_encryption.js    # File encryption logic
+│   └── styles.css            # UI styling
+├── docs/                     # Documentation
+│   ├── architecture.md       # System design
+│   ├── security_analysis.md  # Threat model
+│   └── user_guide.md         # User manual
+├── data/                     # Application data
+│   └── app.db                # SQLite database
+├── tests/                    # Test suite
+│   ├── test_api.py
+│   └── test_core.py
+├── custom_crypto/            # Hand-implemented crypto
+│   ├── __init__.py
+│   ├── caesar.py             # Caesar cipher with frequency analysis
+│   ├── vigenere.py           # Vigenère cipher with Kasiski examination
+│   ├── sha256.py             # Simplified SHA-256 implementation
+│   ├── merkle.py             # Merkle tree implementation
+│   ├── rsa.py                # RSA key generation & operations
+│   └── aes.py                # AES key expansion
+└── requirements.txt
 ```
 
-## Installation
+## 🚀 Quick Start
 
 ### Prerequisites
-- Python 3.9 or higher
-- pip (Python package manager)
+- Python 3.9+
+- Modern web browser with ES6 support
 
-### Setup
+### Installation
 
-1. **Create virtual environment**:
+1. **Clone the repository**
 ```bash
-python3 -m venv .venv
-source .venv/bin/activate  # On Windows: .venv\Scripts\activate
+git clone https://github.com/yourusername/crypt.git
+cd crypt
 ```
 
-2. **Install dependencies**:
+2. **Set up Python environment**
 ```bash
+python -m venv .venv
+source .venv/bin/activate  # Windows: .venv\Scripts\activate
 pip install -r requirements.txt
 ```
 
-3. **Configure email (optional, for password reset)**:
+3. **Start the application**
 ```bash
-export SMTP_HOST="smtp.gmail.com"
-export SMTP_PORT="587"
-export SMTP_USER="your-email@gmail.com"
-export SMTP_PASSWORD="your-app-password"  # Use Gmail App Password, not regular password
-export SMTP_FROM="your-email@gmail.com"
+python -m secure_messaging.server
 ```
 
-## Running the Application
-
-### Web Interface (Recommended)
-
-Start the FastAPI server:
-```bash
-uvicorn secure_messaging.server:app --reload --port 8080
+4. **Open your browser**
+```
+http://localhost:8000
 ```
 
-Then open your browser to `http://127.0.0.1:8080`.
+## 🔐 Security Features
 
-**Features:**
-- User registration with password complexity validation
-- Login with optional TOTP verification
-- TOTP setup with QR code scanning
-- Secure password reset with token-based flow
-- End-to-end encrypted messaging
-- Group messaging support
+### End-to-End Encrypted Messaging
+- **X25519 ECDH** key exchange for forward secrecy
+- **AES-256-GCM** message encryption with per-message keys
+- **Ed25519** digital signatures for authenticity
+- **TOTP 2FA** with QR code setup
+- **Secure password reset** with token-based flow
 
-### CLI Mode
+### File Encryption
+- **AES-256-GCM** encryption with integrity verification
+- **PBKDF2** key derivation from passwords
+- **SHA-256** file hashing for tamper detection
+- **Base64 encoding** for safe transport
 
-For terminal-based interaction:
+### Blockchain Audit Ledger
+- **Proof-of-work** consensus with adjustable difficulty
+- **Merkle trees** for efficient transaction verification
+- **ECDSA transaction signatures** for authenticity
+- **Chain reorganization** handling (longest chain rule)
+
+### Custom Cryptography (From Scratch)
+- **Caesar cipher** with frequency analysis breaker
+- **Vigenère cipher** with Kasiski examination
+- **Simplified SHA-256** hash function
+- **Merkle tree** construction and proofs
+- **RSA key generation** with prime finding
+- **AES key expansion** algorithm
+
+## 🎯 Module Usage
+
+### 1. Secure Messaging
+
+**Web Interface:**
+- Navigate to `http://localhost:8000`
+- Register with strong password
+- Set up TOTP 2FA (optional)
+- Send/receive encrypted messages
+
+**CLI Usage:**
 ```bash
-python -m secure_messaging
-```
-
-Commands: `register`, `login`, `send`, `inbox`, `users`, `logout`, `quit`
-
-### Usage Examples
-
-### CLI Usage
-# Register a new user
+# Register user
 python -m secure_messaging register
-Username: alice
-Password: ********
-Password meets complexity requirements ✔
-User registered successfully.
 
 # Login
 python -m secure_messaging login
-Username: alice
-Password: ********
-TOTP (if enabled): 123456
-Login successful. Session started.
 
-# Send a message
+# Send message
 python -m secure_messaging send
-Recipient: bob
-Message: Hello Bob! This is a secret message.
-Message encrypted and sent successfully.
-
-# Check inbox
-python -m secure_messaging inbox
-From: bob
-Message: Hi Alice! ✔ (decrypted)
-
-
-### API (HTTP) Usage
-# Register via HTTP POST
-curl -X POST http://127.0.0.1:8080/api/register \
-  -H "Content-Type: application/json" \
-  -d '{"username":"alice","password":"StrongPass123!"}'
-
-# Login via HTTP POST
-curl -X POST http://127.0.0.1:8080/api/login \
-  -H "Content-Type: application/json" \
-  -d '{"username":"alice","password":"StrongPass123!","totp":"123456"}'
-
-# Send an encrypted message
-curl -X POST http://127.0.0.1:8080/api/messages \
-  -H "Content-Type: application/json" \
-  -d '{"recipient":"bob","message":"Hello Bob! This is a secret message."}'
-
-# Fetch inbox (decrypted messages)
-curl -X GET http://127.0.0.1:8080/api/messages
-
-
-### Example: End-to-End Encryption
-from secure_messaging.crypto import generate_user_secrets, derive_message_key, encrypt_message, decrypt_message
-
-# Generate key pairs for Alice and Bob
-alice_secrets, alice_public = generate_user_secrets()
-bob_secrets, bob_public = generate_user_secrets()
-
-# Derive shared AES/HMAC keys using X25519 ECDH
-aes_key, hmac_key = derive_message_key(alice_secrets.x25519_private, bob_public["x25519"].encode())
-
-# Encrypt a message
-encrypted = encrypt_message(aes_key, b"Hello Bob!", hmac_key)
-
-# Bob decrypts the message
-plaintext = decrypt_message(aes_key, encrypted, hmac_key)
-print(plaintext.decode())  # Output: Hello Bob!
-
-
-## Security Best Practices
-
-### Password Requirements
-- Minimum 8 characters
-- At least one letter (a-z, A-Z)
-- At least one number (0-9)
-- At least one special character (!@#$%^&*()_+-=[]{}|;:,.<>?)
-
-### TOTP Setup
-1. Log in to your account
-2. Click "Set up Two-Factor Authentication"
-3. Scan the QR code with an authenticator app (Google Authenticator, Authy, Microsoft Authenticator)
-4. On next login, you'll be prompted for a 6-digit TOTP code
-
-### Password Reset Flow
-1. Click "Forgot password" on login page
-2. Enter your registered email address
-3. Receive a secure reset token (valid for 1 hour)
-4. Navigate to reset page and enter token + new password
-5. Password complexity validation applies to new password
-
-### Production Deployment
-
-**Critical Security Settings:**
-
-1. **Enable HTTPS**: Use TLS/SSL certificates
-   ```bash
-   uvicorn secure_messaging.server:app --ssl-keyfile key.pem --ssl-certfile cert.pem --port 443
-   ```
-
-2. **Set Secure Cookie Flag**: In `server.py`, change:
-   ```python
-   secure=True,  # Requires HTTPS
-   ```
-
-3. **Configure CORS**: Restrict origins in `server.py`:
-   ```python
-   allow_origins=["https://yourdomain.com"]  # Replace with your domain
-   ```
-
-4. **Environment Variables**: Store sensitive data (SMTP credentials, secrets) in environment variables, not in code
-
-5. **Database Security**: Use a production database (PostgreSQL, MySQL) with proper access controls
-
-## API Endpoints
-
-### Authentication
-- `POST /api/register` - Register new user (requires password complexity)
-- `POST /api/login` - Login (returns cookie, may require TOTP)
-- `POST /api/logout` - Logout and clear session cookie
-
-### TOTP Management
-- `POST /api/totp/setup` - Generate TOTP secret and QR code
-- `POST /api/totp/disable` - Disable TOTP for current user
-
-### Password Reset
-- `POST /api/forgot-password` - Generate reset token (sends email in production)
-- `POST /api/reset-password` - Complete password reset with token
-
-### Messaging
-- `GET /api/users` - List registered users
-- `GET /api/messages` - Get inbox (decrypted messages)
-- `POST /api/messages` - Send encrypted message
-- `POST /api/group-messages` - Send message to multiple recipients
-
-## Cryptographic Design
-
-### Key Exchange
-X25519 ECDH derives a shared secret between the sender's ephemeral key pair and the recipient's long-term public key. HKDF-SHA256 expands this secret into a 256-bit AES key.
-
-### Encryption
-AES-256-GCM protects message bodies and ensures confidentiality + integrity. Each message uses a fresh ephemeral key for forward secrecy.
-
-### Authentication
-Ed25519 signatures cover the entire message envelope (metadata + ciphertext). Recipients verify signatures using the sender's published public key.
-
-### Password Security
-- **Bcrypt** hashes user passwords (configurable cost factor)
-- **PBKDF2** derives keys for wrapping private key material on disk
-- **Password complexity validation** prevents weak passwords
-
-### Session Management
-- **HttpOnly cookies** prevent JavaScript access (XSS protection)
-- **Secure flag** (in production) ensures cookies only sent over HTTPS
-- **SameSite=Lax** prevents CSRF attacks
-
-## Error Handling
-
-All endpoints return appropriate HTTP status codes and error messages:
-- `400 Bad Request`: Invalid input (weak password, invalid token, etc.)
-- `401 Unauthorized`: Authentication required or failed
-- `404 Not Found`: Resource not found
-- `500 Internal Server Error`: Server-side errors
-
-Error messages are user-friendly and informative:
-- "Password must be at least 8 characters long"
-- "Invalid TOTP token"
-- "Reset token has expired"
-- "User already exists"
-
-## Development
-
-### Running Tests
-```bash
-# Add pytest to requirements.txt for testing
-pytest tests/
 ```
 
-### Code Structure
-- **Backend**: FastAPI with dependency injection for session management
-- **Frontend**: Vanilla JavaScript SPA with cookie-based authentication
-- **Database**: SQLite with schema migrations for easy development
+### 2. File Encryption
 
-### Adding Features
-- New endpoints: Add to `server.py` with proper error handling
-- Frontend changes: Update `app.js` and `index.html`
-- Database changes: Add migrations in `db.py._migrate()`
+**Web Interface:**
+- Navigate to `http://localhost:8000/file_encryption.html`
+- Choose file and enter password
+- Download encrypted file
+- Upload and decrypt with same password
 
-## License
+### 3. Blockchain Audit Ledger
 
-See [LICENSE](LICENSE) file for details.
+**Web Interface:**
+- Navigate to `http://localhost:8000/blockchain.html`
+- Create blocks with transactions
+- Verify transaction inclusion with Merkle proofs
+- Validate chain integrity
 
-## Contributing
+### 4. Custom Cryptography
+
+**Python API:**
+```python
+from custom_crypto import caesar, vigenere, sha256, merkle, rsa, aes
+
+# Caesar cipher with frequency analysis
+encrypted = caesar.encrypt("HELLO", 3)
+decrypted = caesar.decrypt(encrypted, 3)
+key = caesar.frequency_analysis(encrypted)  # Break cipher
+
+# Vigenère cipher with Kasiski examination
+encrypted = vigenere.encrypt("HELLO", "KEY")
+key_length = vigenere.kasiski_examination(encrypted)
+key = vigenere.frequency_analysis(encrypted, key_length)
+
+# SHA-256 implementation
+hash_value = sha256.hash("Hello World")
+
+# Merkle tree
+tree = merkle.MerkleTree(["tx1", "tx2", "tx3"])
+root = tree.get_root()
+proof = tree.get_proof(0)
+
+# RSA operations
+public_key, private_key = rsa.generate_keypair(2048)
+encrypted = rsa.encrypt(123, public_key)
+decrypted = rsa.decrypt(encrypted, private_key)
+
+# AES key expansion
+expanded_keys = aes.key_expansion(b"0123456789abcdef" * 2)
+```
+
+## 🔍 API Endpoints
+
+### Authentication
+```
+POST /api/register          # User registration
+POST /api/login            # User login with TOTP support
+POST /api/logout           # Session logout
+POST /api/forgot-password  # Password reset initiation
+POST /api/reset-password   # Password reset completion
+```
+
+### Messaging
+```
+GET  /api/users            # List users
+GET  /api/messages         # Get inbox
+POST /api/messages         # Send message
+POST /api/group-messages   # Send group message
+```
+
+### File Operations
+```
+POST /api/files/encrypt    # Encrypt file
+POST /api/files/decrypt    # Decrypt file
+```
+
+### TOTP Management
+```
+POST /api/totp/setup       # Setup 2FA
+POST /api/totp/disable     # Disable 2FA
+```
+
+## 🧪 Testing
+
+```bash
+# Run all tests
+pytest tests/
+
+# Run with coverage
+pytest --cov=secure_messaging tests/
+
+# Run specific test
+pytest tests/test_api.py::test_register_new_user
+```
+
+## 📚 Documentation
+
+- **[User Guide](docs/user_guide.md)** - How to use each module
+- **[Architecture](docs/architecture.md)** - System design and diagrams
+- **[Security Analysis](docs/security_analysis.md)** - Threat model and mitigations
+
+## 🔧 Configuration
+
+### Environment Variables
+```bash
+# SMTP Configuration (for password reset)
+export SMTP_HOST="smtp.gmail.com"
+export SMTP_PORT="587"
+export SMTP_USER="your-email@gmail.com"
+export SMTP_PASSWORD="your-app-password"
+
+# Server Configuration
+export HOST="0.0.0.0"
+export PORT="8000"
+```
+
+### Production Deployment
+```bash
+# Enable HTTPS
+uvicorn secure_messaging.server:app --ssl-keyfile key.pem --ssl-certfile cert.pem
+
+# Use production database
+export DATABASE_URL="postgresql://user:pass@localhost/crypt"
+```
+
+## 🤝 Contributing
 
 1. Fork the repository
-2. Create a feature branch
-3. Make your changes with proper error handling
-4. Test thoroughly
-5. Submit a pull request
+2. Create a feature branch (`git checkout -b feature/amazing-feature`)
+3. Commit your changes (`git commit -m 'Add amazing feature'`)
+4. Push to the branch (`git push origin feature/amazing-feature`)
+5. Open a Pull Request
 
-## Acknowledgments
+## 📄 License
 
-- Uses `cryptography` library for cryptographic primitives
-- Uses `pyotp` for TOTP implementation
-- Uses `qrcode` for QR code generation
-- Uses `bcrypt` for password hashing
-- Uses `FastAPI` for the web framework
+This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
 
+## 👥 Team
 
-### Team Member Contributions
+| Name | Role | Responsibilities |
+|------|------|------------------|
+| Didar Nurdaulet | Frontend Developer | SPA, TOTP UI, password reset, validation |
+| Sherkhan Kudaibergen | Data Analyst | DB design, migrations, analytics, messages |
+| Nuradil Kanat | Backend Developer | FastAPI, auth, cryptography, API, sessions |
 
-## Team
+## 🙏 Acknowledgments
 
-## Team
-
-Project contributors and their areas of responsibility:
-
-| Name                 | Role               | Responsibilities                     |
-|----------------------|------------------|--------------------------------------|
-| Didar Nurdaulet      | Frontend Developer | SPA, TOTP UI, password reset, validation |
-| Sherkhan Kudaibergen | Data Analyst       | DB design, migrations, analytics, messages |
-| Nuradil Kanat        | Backend Developer  | FastAPI, auth, cryptography, API, sessions |
-
+- Built with FastAPI, cryptography, and modern web technologies
+- Implements multiple cryptographic standards and best practices
+- Educational platform for learning applied cryptography

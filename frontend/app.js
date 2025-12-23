@@ -1,24 +1,31 @@
-const API_BASE = "/api";
-// Use cookies instead of localStorage for session token
+const API_BASE = "http://127.0.0.1:8080/api"; // Use cookies instead of localStorage for session token 
+
 let currentUser = null;
 
+// Pages
 const homePage = document.getElementById("home-page");
 const signupPage = document.getElementById("signup-page");
 const loginPage = document.getElementById("login-page");
 const forgotPage = document.getElementById("forgot-page");
 const totpSetupPage = document.getElementById("totp-setup-page");
 const appPage = document.getElementById("app-page");
+
+// UI Elements
 const sessionUser = document.getElementById("session-user");
 const recipientSelect = document.getElementById("recipient-select");
 const inboxEl = document.getElementById("inbox");
 const toast = document.getElementById("toast");
 
+// Forms
 const registerForm = document.getElementById("register-form");
 const loginForm = document.getElementById("login-form");
 const sendForm = document.getElementById("send-form");
 const groupSendForm = document.getElementById("group-send-form");
 const groupRecipientsInput = document.getElementById("group-recipients");
 const groupMessageInput = document.getElementById("group-message-input");
+const forgotForm = document.getElementById("forgot-form");
+
+// Buttons & Inputs
 const logoutBtn = document.getElementById("logout-btn");
 const getStartedBtn = document.getElementById("get-started-btn");
 const goLoginBtnHome = document.getElementById("go-login-btn-home");
@@ -26,7 +33,7 @@ const goLoginBtn = document.getElementById("go-login-btn");
 const goSignupBtn = document.getElementById("go-signup-btn");
 const goForgotBtn = document.getElementById("go-forgot-btn");
 const goLoginFromForgotBtn = document.getElementById("go-login-from-forgot");
-const forgotForm = document.getElementById("forgot-form");
+
 const totpSection = document.getElementById("totp-section");
 const setupTotpBtn = document.getElementById("setup-totp-btn");
 const disableTotpBtn = document.getElementById("disable-totp-btn");
@@ -41,6 +48,7 @@ const passwordRegex = {
   hasSpecial: /[!@#$%^&*()_+\-=\[\]{}|;:,.<>?]/
 };
 
+// Utils
 function showToast(message, isError = false) {
   toast.textContent = message;
   toast.classList.remove("hidden", "error");
@@ -49,19 +57,33 @@ function showToast(message, isError = false) {
 }
 
 async function api(path, { method = "GET", body, credentials = "include" } = {}) {
-  // credentials: "include" ensures cookies are sent with requests
+  // credentials: "include" ensures cookies are sent with requests 
   const headers = { "Content-Type": "application/json" };
-  const res = await fetch(`${API_BASE}${path}`, {
-    method,
-    headers,
-    credentials,
-    body: body ? JSON.stringify(body) : undefined,
-  });
-  if (!res.ok) {
-    const detail = await res.json().catch(() => ({}));
-    throw new Error(detail.detail || detail.message || "Request failed");
+  try {
+    const res = await fetch(`${API_BASE}${path}`, {
+      method,
+      headers,
+      credentials,
+      body: body ? JSON.stringify(body) : undefined,
+    });
+
+    if (!res.ok) {
+      let errorMessage = "Request failed";
+      try {
+        const detail = await res.json();
+        errorMessage = detail.detail || detail.message || `HTTP ${res.status}: ${res.statusText}`;
+      } catch {
+        errorMessage = `HTTP ${res.status}: ${res.statusText}`;
+      }
+      throw new Error(errorMessage);
+    }
+    return res.json();
+  } catch (error) {
+    if (error.name === 'TypeError' && error.message.includes('fetch')) {
+      throw new Error("Cannot connect to server. Please make sure the server is running on the correct port.");
+    }
+    throw error;
   }
-  return res.json();
 }
 
 function showPage(page) {
@@ -71,6 +93,7 @@ function showPage(page) {
   forgotPage.classList.add("hidden");
   totpSetupPage.classList.add("hidden");
   appPage.classList.add("hidden");
+
   if (page === "home") homePage.classList.remove("hidden");
   if (page === "signup") signupPage.classList.remove("hidden");
   if (page === "login") loginPage.classList.remove("hidden");
@@ -129,6 +152,7 @@ function renderUsers(users) {
       option.textContent = user;
       recipientSelect.appendChild(option);
     });
+
   if (!recipientSelect.value) {
     const option = document.createElement("option");
     option.value = "";
@@ -150,8 +174,8 @@ function renderInbox(messages) {
     container.className = "message";
     const status = msg.signature_valid ? "valid" : "invalid";
     container.innerHTML = `
-      <strong>From ${msg.from}</strong>
-      <small>${msg.timestamp} · signature ${status}</small>
+      <strong>From ${msg.from}</strong> 
+      <small>${msg.timestamp} · signature ${status}</small> 
       <p>${msg.message}</p>
     `;
     inboxEl.appendChild(container);
@@ -178,17 +202,15 @@ if (registerPasswordInput) {
   });
 }
 
+// Event Listeners
 registerForm.addEventListener("submit", async (event) => {
   event.preventDefault();
   const data = Object.fromEntries(new FormData(registerForm));
-  
-  // Client-side password validation
   const validation = validatePassword(data.password);
   if (!validation.valid) {
     showToast(validation.message, true);
     return;
   }
-  
   try {
     await api("/register", { method: "POST", body: data });
     showToast("Registration successful");
@@ -205,10 +227,7 @@ let pendingPassword = null;
 loginForm.addEventListener("submit", async (event) => {
   event.preventDefault();
   const data = Object.fromEntries(new FormData(loginForm));
-  
-  // Store credentials for TOTP verification
   if (!totpSection.classList.contains("hidden")) {
-    // TOTP verification step
     try {
       const response = await api("/login", { method: "POST", body: data });
       setAuthenticated(response.username);
@@ -220,17 +239,17 @@ loginForm.addEventListener("submit", async (event) => {
       showToast(error.message, true);
     }
   } else {
-    // Initial login attempt
     pendingUsername = data.username;
     pendingPassword = data.password;
     try {
-      const response = await api("/login", { method: "POST", body: { username: data.username, password: data.password } });
+      const response = await api("/login", { 
+        method: "POST", 
+        body: { username: data.username, password: data.password } 
+      });
       if (response.requires_totp) {
-        // Show TOTP input
         totpSection.classList.remove("hidden");
         showToast("TOTP code required. Enter the 6-digit code from your authenticator app.");
       } else {
-        // Login successful
         setAuthenticated(response.username);
         loginForm.reset();
       }
@@ -289,30 +308,15 @@ logoutBtn.addEventListener("click", async () => {
   setAuthenticated(null);
 });
 
-getStartedBtn.addEventListener("click", () => {
-  showPage("signup");
+getStartedBtn.addEventListener("click", () => { showPage("signup"); });
+goLoginBtnHome.addEventListener("click", () => { showPage("login"); });
+goLoginBtn.addEventListener("click", () => { 
+  showPage("login"); 
+  totpSection.classList.add("hidden"); 
 });
-
-goLoginBtnHome.addEventListener("click", () => {
-  showPage("login");
-});
-
-goLoginBtn.addEventListener("click", () => {
-  showPage("login");
-  totpSection.classList.add("hidden");
-});
-
-goSignupBtn.addEventListener("click", () => {
-  showPage("signup");
-});
-
-goForgotBtn.addEventListener("click", () => {
-  showPage("forgot");
-});
-
-goLoginFromForgotBtn.addEventListener("click", () => {
-  showPage("login");
-});
+goSignupBtn.addEventListener("click", () => { showPage("signup"); });
+goForgotBtn.addEventListener("click", () => { showPage("forgot"); });
+goLoginFromForgotBtn.addEventListener("click", () => { showPage("login"); });
 
 forgotForm.addEventListener("submit", async (event) => {
   event.preventDefault();
@@ -323,16 +327,12 @@ forgotForm.addEventListener("submit", async (event) => {
   }
   try {
     const response = await api("/forgot-password", { method: "POST", body: data });
-    // Show user-friendly message (token is sent via email, not returned)
     showToast(response.message || "Reset token generated. Please check your email.");
-    // Clear form
     forgotForm.reset();
-    // Optionally redirect to login page after a delay
     setTimeout(() => {
       window.location.href = "/reset_password.html";
     }, 1500);
   } catch (error) {
-    // Handle network errors or other issues
     showToast(error.message || "Failed to process reset request. Please try again.", true);
   }
 });
@@ -349,8 +349,21 @@ setupTotpBtn.addEventListener("click", async () => {
 });
 
 totpSetupDoneBtn.addEventListener("click", () => {
-  showPage("app");
+  const qrImg = document.getElementById("totp-qr-code");
+  const qrContainer = document.getElementById("totp-qr-container");
+  const secret = document.getElementById("totp-secret");
+  
+  if (qrImg) qrImg.style.display = 'none';
+  if (secret) secret.style.display = 'none';
+  if (qrContainer) qrContainer.innerHTML = '<p class="muted">QR code hidden. TOTP setup complete!</p>';
+  
+  totpSetupDoneBtn.disabled = true;
+  totpSetupDoneBtn.textContent = "Setup Complete";
   showToast("TOTP enabled. You'll be asked for a code on next login.");
+  
+  setTimeout(() => {
+    showPage("app");
+  }, 3000);
 });
 
 disableTotpBtn.addEventListener("click", async () => {
@@ -368,16 +381,11 @@ disableTotpBtn.addEventListener("click", async () => {
 });
 
 async function bootstrap() {
-  // Check if user is authenticated by trying to fetch user data
   try {
     const users = await api("/users");
-    // If we get here, we're authenticated
-    // Try to get username from a user endpoint or session
-    // For now, we'll just show the app page
     showPage("app");
     refreshData();
   } catch {
-    // Not authenticated
     setAuthenticated(null);
   }
 }

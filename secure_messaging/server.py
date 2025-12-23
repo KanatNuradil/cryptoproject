@@ -11,8 +11,14 @@ from fastapi.responses import JSONResponse
 from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel
 from datetime import datetime, timedelta
+from fastapi import UploadFile, File
 
 from .app import ActiveSession, AuthService, MessagingService
+from .crypto import (
+    derive_master_key, generate_file_encryption_key, encrypt_file_key, decrypt_file_key,
+    compute_file_hash, encrypt_file_stream, decrypt_file_stream,
+    create_encrypted_file_metadata, parse_encrypted_file_metadata, b64encode, b64decode
+)
 from .db import Database
 
 FRONTEND_DIR = Path(__file__).resolve().parent.parent / "frontend"
@@ -93,7 +99,8 @@ state = ApplicationState()
 app = FastAPI(title="Secure Messaging API", version="1.0")
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],
+    allow_origins=["http://127.0.0.1:5500"],
+    allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
 )
@@ -323,9 +330,132 @@ async def disable_totp(
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=str(exc)) from exc
 
 
+@app.post("/api/files/encrypt")
+async def encrypt_file(
+    file: UploadFile = File(...),
+    password: str = None,
+):
+    """
+    Encrypt a file using AES-256-GCM with integrity verification.
+    
+    The file is encrypted with a random FEK, which is then encrypted with
+    a master key derived from the user's password. Metadata includes
+    SHA-256 hash of original file and HMAC for tamper detection.
+    """
+    if not password:
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Password required")
+    
+    try:
+        # Read file data
+        file_data = await file.read()
+        if len(file_data) == 0:
+            raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Empty file")
+        
+        # Generate salt and derive master key
+        salt = secrets.token_bytes(16)
+        iterations = 100_000
+        master_key = derive_master_key(password, salt, iterations)
+        
+        # Generate FEK and encrypt it
+        fek = generate_file_encryption_key()
+        encrypted_fek = encrypt_file_key(fek, master_key)
+        
+        # Compute file hash
+        file_hash = compute_file_hash(file_data)
+        
+        # Encrypt file data
+        encrypted_data, hmac_key, nonce, hmac_tag = encrypt_file_stream(fek, file_data)
+        
+        # Create metadata
+        metadata = create_encrypted_file_metadata(
+            file.filename, file_hash, salt, iterations,
+            encrypted_fek, hmac_key, nonce, hmac_tag
+        )
+        
+        # Combine metadata and encrypted data
+        import json
+        metadata_json = json.dumps(metadata).encode('utf-8')
+        # Store as: metadata_length (4 bytes) + metadata + encrypted_data
+        metadata_len = len(metadata_json).to_bytes(4, 'big')
+        final_data = metadata_len + metadata_json + encrypted_data
+        
+        return {
+            "status": "ok",
+            "encrypted_file": b64encode(final_data),
+            "original_filename": file.filename,
+            "file_size": len(file_data),
+        }
+    except Exception as exc:
+        raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=f"Encryption failed: {str(exc)}") from exc
+
+
+@app.post("/api/files/decrypt")
+async def decrypt_file(
+    encrypted_file_b64: str = None,
+    password: str = None,
+):
+    """
+    Decrypt a file and verify integrity.
+    
+    Verifies SHA-256 hash and HMAC before returning decrypted data.
+    """
+    if not encrypted_file_b64 or not password:
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Encrypted file and password required")
+    
+    try:
+        # Decode encrypted file
+        encrypted_file = b64decode(encrypted_file_b64)
+        
+        # Parse: metadata_length (4 bytes) + metadata + encrypted_data
+        if len(encrypted_file) < 4:
+            raise ValueError("Invalid encrypted file format")
+        
+        metadata_len = int.from_bytes(encrypted_file[:4], 'big')
+        metadata_json = encrypted_file[4:4+metadata_len]
+        encrypted_data = encrypted_file[4+metadata_len:]
+        
+        import json
+        metadata = json.loads(metadata_json.decode('utf-8'))
+        
+        # Parse metadata
+        original_filename, file_hash, salt, iterations, encrypted_fek, hmac_key, nonce, hmac_tag = parse_encrypted_file_metadata(metadata)
+        
+        # Derive master key
+        master_key = derive_master_key(password, salt, iterations)
+        
+        # Decrypt FEK
+        fek = decrypt_file_key(encrypted_fek, master_key)
+        
+        # Decrypt file data and verify integrity
+        decrypted_data = decrypt_file_stream(fek, encrypted_data, hmac_key, nonce, hmac_tag)
+        
+        # Verify file hash
+        computed_hash = compute_file_hash(decrypted_data)
+        if computed_hash != file_hash:
+            raise ValueError("File integrity check failed: hash mismatch")
+        
+        return {
+            "status": "ok",
+            "decrypted_file": b64encode(decrypted_data),
+            "original_filename": original_filename,
+            "file_size": len(decrypted_data),
+        }
+    except ValueError as exc:
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=f"Decryption failed: {str(exc)}") from exc
+    except Exception as exc:
+        raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=f"Decryption failed: {str(exc)}") from exc
+
+
 @app.exception_handler(HTTPException)
 async def custom_http_exception_handler(request, exc):  # pragma: no cover - convenience
     return JSONResponse(status_code=exc.status_code, content={"detail": exc.detail})
+
+
+@app.get("/")
+async def root_redirect():
+    """Redirect root to blockchain page."""
+    from fastapi.responses import RedirectResponse
+    return RedirectResponse(url="/blockchain.html", status_code=302)
 
 
 if FRONTEND_DIR.exists():

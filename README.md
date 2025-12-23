@@ -238,7 +238,7 @@ pytest tests/test_api.py::test_register_new_user
 
 ## Environment Variables
 
-### Linux / macOS (bash/zsh)
+### Linux / macOS / Windows (bash/zsh)
 ```bash
 # SMTP Configuration (for password reset)
 export SMTP_HOST="smtp.gmail.com"

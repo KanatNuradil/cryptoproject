@@ -11,7 +11,7 @@ from fastapi.responses import JSONResponse
 from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel
 from datetime import datetime, timedelta
-from fastapi import UploadFile, File
+from fastapi import UploadFile, File, Form, Body
 
 from .app import ActiveSession, AuthService, MessagingService
 from .crypto import (
@@ -67,6 +67,11 @@ class SessionToken(BaseModel):
     token: str
     username: str
     requires_totp: bool = False
+
+
+class DecryptFileRequest(BaseModel):
+    encrypted_file_b64: str
+    password: str
 
 
 class SessionManager:
@@ -333,7 +338,7 @@ async def disable_totp(
 @app.post("/api/files/encrypt")
 async def encrypt_file(
     file: UploadFile = File(...),
-    password: str = None,
+    password: str = Form(...),
 ):
     """
     Encrypt a file using AES-256-GCM with integrity verification.
@@ -391,16 +396,15 @@ async def encrypt_file(
 
 @app.post("/api/files/decrypt")
 async def decrypt_file(
-    encrypted_file_b64: str = None,
-    password: str = None,
+    payload: DecryptFileRequest,
 ):
     """
     Decrypt a file and verify integrity.
-    
+
     Verifies SHA-256 hash and HMAC before returning decrypted data.
     """
-    if not encrypted_file_b64 or not password:
-        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Encrypted file and password required")
+    encrypted_file_b64 = payload.encrypted_file_b64
+    password = payload.password
     
     try:
         # Decode encrypted file

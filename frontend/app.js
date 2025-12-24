@@ -1,4 +1,4 @@
-const API_BASE = "http://127.0.0.1:8080/api"; // Use cookies instead of localStorage for session token 
+const API_BASE = "http://127.0.0.1:8000/api"; // Use cookies instead of localStorage for session token
 
 let currentUser = null;
 
@@ -9,6 +9,15 @@ const loginPage = document.getElementById("login-page");
 const forgotPage = document.getElementById("forgot-page");
 const totpSetupPage = document.getElementById("totp-setup-page");
 const appPage = document.getElementById("app-page");
+
+/*const pages = {
+  home: homePage,
+  signup: signupPage,
+  login: loginPage,
+  forgot: forgotPage,
+  "totp-setup": totpSetupPage,
+  app: appPage
+};*/
 
 // UI Elements
 const sessionUser = document.getElementById("session-user");
@@ -101,6 +110,9 @@ function showPage(page) {
   if (page === "totp-setup") totpSetupPage.classList.remove("hidden");
   if (page === "app") appPage.classList.remove("hidden");
 }
+
+
+
 
 function validatePassword(password) {
   if (!passwordRegex.minLength.test(password)) {
@@ -337,18 +349,11 @@ forgotForm.addEventListener("submit", async (event) => {
   }
 });
 
-setupTotpBtn.addEventListener("click", async () => {
-  try {
-    const response = await api("/totp/setup", { method: "POST" });
-    document.getElementById("totp-qr-code").src = response.qr_code;
-    document.getElementById("totp-secret").textContent = response.secret;
-    showPage("totp-setup");
-  } catch (error) {
-    showToast(error.message, true);
-  }
+setupTotpBtn.addEventListener("click", () => {
+  window.location.href = 'totp.html';
 });
 
-totpSetupDoneBtn.addEventListener("click", () => {
+/*totpSetupDoneBtn.addEventListener("click", () => {
   const qrImg = document.getElementById("totp-qr-code");
   const qrContainer = document.getElementById("totp-qr-container");
   const secret = document.getElementById("totp-secret");
@@ -363,7 +368,12 @@ totpSetupDoneBtn.addEventListener("click", () => {
   
   setTimeout(() => {
     showPage("app");
-  }, 3000);
+  }, 10000);
+});*/
+
+totpSetupDoneBtn.addEventListener("click", () => {
+  showPage("app");
+  showToast("TOTP enabled. You'll be asked for a code on next login.");
 });
 
 disableTotpBtn.addEventListener("click", async () => {
@@ -381,6 +391,7 @@ disableTotpBtn.addEventListener("click", async () => {
 });
 
 async function bootstrap() {
+  
   try {
     const users = await api("/users");
     showPage("app");

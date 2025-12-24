@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>TOTP Setup - Secure Messaging</title>
+    <link rel="stylesheet" href="styles.css" />
+  </head>
+  <body>
+    <div class="app">
+      <header>
+        <h1>TOTP Setup</h1>
+        <p>Set up two-factor authentication for enhanced security</p>
+        <nav>
+          <a href="index.html">← Back to Messaging</a>
+          <a href="file_encryption.html">File Encryption</a>
+          <a href="blockchain.html">Blockchain</a>
+        </nav>
+      </header>
+
+      <section id="totp-setup-section">
+        <div class="card">
+          <div class="session-info">
+            <span id="session-user"></span>
+            <button id="logout-btn">Logout</button>
+          </div>
+
+          <h2>Set up Two-Factor Authentication</h2>
+          <p class="muted">Scan this QR code with your authenticator app (Google Authenticator, Authy, etc.)</p>
+
+          <div id="totp-qr-container" style="text-align: center; margin: 2rem 0;">
+            <img id="totp-qr-code" alt="TOTP QR Code" style="max-width: 300px; border: 2px solid #e5e7eb; border-radius: 8px;" />
+          </div>
+
+          <div style="background: #f9fafb; padding: 1rem; border-radius: 8px; margin: 1rem 0;">
+            <p class="muted"><strong>Secret Key:</strong> <code id="totp-secret" style="background: #fff; padding: 0.25rem 0.5rem; border-radius: 4px; font-family: monospace;"></code></p>
+            <p class="muted" style="font-size: 0.875rem;">You can manually enter this secret key if you cannot scan the QR code.</p>
+          </div>
+
+          <div style="background: #fef3c7; border: 1px solid #f59e0b; padding: 1rem; border-radius: 8px; margin: 1rem 0;">
+            <h4 style="color: #92400e; margin-top: 0;">Important Instructions:</h4>
+            <ol style="color: #92400e; margin-bottom: 0;">
+              <li>Open your authenticator app</li>
+              <li>Scan the QR code above or enter the secret key manually</li>
+              <li>The app will generate a 6-digit code every 30 seconds</li>
+              <li>Click "I've Scanned the Code" below when done</li>
+              <li>You'll be asked for this code on future logins</li>
+            </ol>
+          </div>
+
+          <div style="text-align: center; margin-top: 2rem;">
+            <button id="totp-setup-done-btn" style="background: #16a34a; color: white; padding: 0.75rem 1.5rem; border: none; border-radius: 8px; font-size: 1rem; cursor: pointer;">I've Scanned the Code</button>
+            <p class="muted" style="margin-top: 1rem;">Take your time - the QR code will remain visible until you click the button above.</p>
+          </div>
+        </div>
+
+        <div class="card">
+          <h3>Authenticator Apps</h3>
+          <p class="muted">Download one of these popular authenticator apps:</p>
+          <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1rem; margin-top: 1rem;">
+            <div style="text-align: center; padding: 1rem; border: 1px solid #e5e7eb; border-radius: 8px;">
+              <h4>Google Authenticator</h4>
+              <p>Free app by Google</p>
+              <small>iOS/Android</small>
+            </div>
+            <div style="text-align: center; padding: 1rem; border: 1px solid #e5e7eb; border-radius: 8px;">
+              <h4>Authy</h4>
+              <p>Feature-rich with cloud backup</p>
+              <small>iOS/Android/Desktop</small>
+            </div>
+            <div style="text-align: center; padding: 1rem; border: 1px solid #e5e7eb; border-radius: 8px;">
+              <h4>Microsoft Authenticator</h4>
+              <p>Good integration with Microsoft services</p>
+              <small>iOS/Android</small>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <div id="toast" class="toast hidden"></div>
+    </div>
+    <script src="totp.js" type="module"></script>
+  </body>
+</html>

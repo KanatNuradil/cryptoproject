@@ -30,8 +30,10 @@ crypt/
 │   ├── app.js                # Frontend logic
 │   ├── blockchain.html       # Blockchain interface
 │   ├── blockchain.js         # Blockchain implementation
-│   ├── file_encryption.html  # File encryption UI
-│   ├── file_encryption.js    # File encryption logic
+│   ├── file_encryption.html  # File encryption/decryption UI
+│   ├── file_encryption.js    # File encryption/decryption logic
+│   ├── totp.html             # Dedicated TOTP 2FA setup page
+│   ├── totp.js               # TOTP setup page logic
 │   └── styles.css            # UI styling
 ├── docs/                     # Documentation
 │   ├── architecture.md       # System design
@@ -120,7 +122,7 @@ http://localhost:8000
 **Web Interface:**
 - Navigate to `http://localhost:8000`
 - Register with strong password
-- Set up TOTP 2FA (optional)
+- Set up TOTP 2FA via dedicated setup page (optional)
 - Send/receive encrypted messages
 
 **CLI Usage:**
@@ -206,12 +208,12 @@ POST /api/group-messages   # Send group message
 ### File Operations
 ```
 POST /api/files/encrypt    # Encrypt file
-POST /api/files/decrypt    # Decrypt file
+POST /api/files/decrypt    # Decrypt file (uses JSON request body)
 ```
 
 ### TOTP Management
 ```
-POST /api/totp/setup       # Setup 2FA
+POST /api/totp/setup       # Setup 2FA (dedicated page at /totp.html)
 POST /api/totp/disable     # Disable 2FA
 ```
 

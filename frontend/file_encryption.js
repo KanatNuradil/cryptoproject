@@ -1,5 +1,5 @@
 // File Encryption System Frontend
-const API_BASE = "/api";
+const API_BASE = "http://127.0.0.1:8000/api";
 
 function showToast(message, isError = false) {
   const toast = document.getElementById("toast");
@@ -130,7 +130,7 @@ encryptForm.addEventListener('submit', async (e) => {
     formData.append('file', file);
     formData.append('password', password);
 
-    const response = await fetch('/api/files/encrypt', {
+    const response = await fetch(`${API_BASE}/files/encrypt`, {
       method: 'POST',
       body: formData
     });
@@ -205,15 +205,32 @@ decryptForm.addEventListener('submit', async (e) => {
     // Read encrypted file as base64
     const encryptedData = await fileToBase64(file);
 
-    const response = await apiRequest('/api/files/decrypt', {
+    console.log('File info:', {
+      name: file.name,
+      size: file.size,
+      type: file.type,
+      encryptedDataLength: encryptedData.length,
+      encryptedDataPreview: encryptedData.substring(0, 100) + '...'
+    });
+
+    console.log('Sending decrypt request:', {
+      encrypted_file_b64: encryptedData.substring(0, 100) + '...',
+      password: password ? '[REDACTED]' : 'empty'
+    });
+
+    const requestData = {
+      encrypted_file_b64: encryptedData,
+      password: password
+    };
+
+    console.log('Request data to send:', {
+      encrypted_file_b64: encryptedData.substring(0, 100) + '...',
+      password: password ? '[REDACTED]' : 'empty'
+    });
+
+    const response = await apiRequest('/files/decrypt', {
       method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({
-        encrypted_file_b64: encryptedData,
-        password: password
-      })
+      body: requestData
     });
 
     // Show result
@@ -229,7 +246,21 @@ decryptForm.addEventListener('submit', async (e) => {
 
   } catch (error) {
     console.error('Decryption error:', error);
-    showToast(error.message || 'Decryption failed', 'error');
+    console.error('Error details:', {
+      message: error.message,
+      name: error.name,
+      stack: error.stack
+    });
+
+    // Try to get more specific error from response if available
+    let errorMsg = 'Decryption failed';
+    if (typeof error.message === 'string') {
+      errorMsg = error.message;
+    } else if (error.message && typeof error.message === 'object') {
+      errorMsg = JSON.stringify(error.message);
+    }
+
+    showToast(errorMsg, 'error');
   } finally {
     submitBtn.disabled = false;
     submitBtn.textContent = originalText;

@@ -65,8 +65,8 @@ crypt/
 
 1. **Clone the repository**
 ```bash
-git clone https://github.com/yourusername/crypt.git
-cd crypt
+git clone https://github.com/KanatNuradil/cryptoproject.git
+cd cryptoproject
 ```
 
 2. **Set up Python environment**
